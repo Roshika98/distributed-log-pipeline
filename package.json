@@ -1,0 +1,23 @@
+{
+	"name": "distributed-log-pipeline",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"amqplib": "^0.10.9",
+		"cron": "^4.4.0",
+		"dotenv": "^17.2.3",
+		"express": "^5.2.1",
+		"ioredis": "^5.8.2",
+		"mysql2": "^3.16.1"
+	},
+	"devDependencies": {
+		"uuid": "^13.0.0"
+	}
+}

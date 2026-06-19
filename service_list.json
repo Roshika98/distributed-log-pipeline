@@ -1,0 +1,16 @@
+{
+  "services": [
+    {
+      "name": "User Authentication Service",
+      "queue": "tms"
+    },
+    {
+      "name": "Payment Processing Service",
+      "queue": "lb"
+    },
+    {
+      "name": "Notification Service",
+      "queue": "hrm"
+    }
+  ]
+}
