@@ -37,35 +37,31 @@ class FileHandler {
       highWaterMark: 1024,
     });
 
-    this.fileMaps.set(serviceName, {
-      stream: writeStream,
-      canWrite: true,
-      filename: filePath,
-      createdAt: Date.now(),
-      bytesWritten: 0,
-    });
+    const fileObj = {
+			stream: writeStream,
+			canWrite: true,
+			filename: filePath,
+			createdAt: Date.now(),
+			bytesWritten: 0,
+		};
+
+		this.fileMaps.set(serviceName, fileObj);
 
     writeStream.on("drain", () => {
-      const fileObj = this.fileMaps.get(serviceName);
-      if (fileObj) {
-        fileObj.canWrite = true;
-        if (fileObj._resolveDrain) {
-          fileObj._resolveDrain();
-          fileObj._resolveDrain = null;
-          this.drainSubscribers.delete(serviceName);
-        }
-      }
-    });
+			fileObj.canWrite = true;
+			if (fileObj._resolveDrain) {
+				fileObj._resolveDrain();
+				fileObj._resolveDrain = null;
+				this.drainSubscribers.delete(serviceName);
+			}
+		});
 
     writeStream.on("error", (err) => {
       console.error(
         `Error writing to log file for service ${serviceName}:`,
         err,
       );
-      const fileObj = this.fileMaps.get(serviceName);
-      if (fileObj) {
-        fileObj.canWrite = false;
-      }
+      fileObj.canWrite = false;
     });
 
     // writeStream.on("finish", () => {
@@ -74,19 +70,22 @@ class FileHandler {
 
     writeStream.on("close", () => {
       console.log(`closed write stream for service: ${serviceName}`);
-      const fileObj = this.fileMaps.get(serviceName);
-      if (fileObj) {
-        fileObj.canWrite = true;
-        if (fileObj._resolveDrain) {
-          fileObj._resolveDrain();
-          fileObj._resolveDrain = null;
-          this.drainSubscribers.delete(serviceName);
-        }
-      }
-      this.fileMaps.delete(serviceName);
+      fileObj.canWrite = true;
+			if (fileObj._resolveDrain) {
+				fileObj._resolveDrain();
+				fileObj._resolveDrain = null;
+				this.drainSubscribers.delete(serviceName);
+			}
     });
 
     return writeStream;
+  }
+
+  #closeLogFile(serviceName) {
+    const fileObj = this.fileMaps.get(serviceName);
+    if (fileObj) {
+      this.fileMaps.delete(serviceName);
+    }
   }
 
   /**
@@ -108,11 +107,12 @@ class FileHandler {
       Date.now() - fileObj.createdAt > this.resetTimeInterval
       // TODO: add size based rotation also
     ) {
-      console.log("time difference exceeded");
+			console.log("time difference exceeded");
 
-      fileObj.stream.end(tempBuffer);
-      return false;
-    }
+			fileObj.stream.end(tempBuffer);
+			this.#closeLogFile(serviceName);
+			return false;
+		}
 
     try {
       fileObj.bytesWritten += tempBuffer.length;

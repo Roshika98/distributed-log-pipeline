@@ -15,7 +15,8 @@
 		"dotenv": "^17.2.3",
 		"express": "^5.2.1",
 		"ioredis": "^5.8.2",
-		"mysql2": "^3.16.1"
+		"mysql2": "^3.16.1",
+		"sqlite": "^5.1.1"
 	},
 	"devDependencies": {
 		"uuid": "^13.0.0"
