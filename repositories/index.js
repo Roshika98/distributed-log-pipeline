@@ -54,6 +54,8 @@ const getLogs = async ({
 
   const [rows] = await connection.query(query, params);
 
+  connector.releaseConnection(connection);
+
   return rows;
 };
 
