@@ -47,18 +47,18 @@ class RedisDrainer {
 
   async *#drainLogs() {
     while (true) {
-      const currZsetLength = await this.redisHandler.getZsetLength(
-        this.service,
-      );
-      if (currZsetLength === 0) {
-        // If no logs to drain, wait for a while before checking again
-        // console.log(
-        //   `No items in cache for service: ${this.service}. Waiting...`,
-        // );
+      // const currZsetLength = await this.redisHandler.getZsetLength(
+      //   this.service,
+      // );
+      // if (currZsetLength === 0) {
+      //   // If no logs to drain, wait for a while before checking again
+      //   // console.log(
+      //   //   `No items in cache for service: ${this.service}. Waiting...`,
+      //   // );
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        continue;
-      }
+      //   await new Promise((resolve) => setTimeout(resolve, 1000));
+      //   continue;
+      // }
 
       const batch = await this.redisHandler.popZSetLog(this.service, 100);
       let finalString = "";

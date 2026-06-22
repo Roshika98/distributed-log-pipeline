@@ -40,11 +40,11 @@ class DBWorker {
 
 	async *logGenerator() {
 		while (true) {
-			const logCount = await this.redisHandler.getLogCacheCount();
-			if (logCount == 0) {
-				await new Promise((resolve) => setTimeout(resolve, 10000));
-				continue;
-			}
+			// const logCount = await this.redisHandler.getLogCacheCount();
+			// if (logCount == 0) {
+			// 	await new Promise((resolve) => setTimeout(resolve, 10000));
+			// 	continue;
+			// }
 
 			const logs = await this.redisHandler.popFromLogCache(100);
 			yield logs;

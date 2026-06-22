@@ -43,7 +43,14 @@ class RedisHandler {
    * @returns {Promise<string|null>} The popped log string or null if the list is empty.
    */
   async popFromLogCache(count) {
-    return await this.redis.lpop(`logs`, count);
+    // return await this.redis.lpop(`logs`, count);
+    const result = await this.redis.blpop(`logs`, 0);
+    if (!result) return [];
+
+    const [key, firstLog] = result;
+    const remainingLogs = await this.redis.lpop(`logs`, count - 1);
+    if (remainingLogs === null) return [firstLog];
+    return [firstLog, ...remainingLogs];
   }
 
   /**
@@ -77,7 +84,14 @@ class RedisHandler {
    * @param {number} minScore
    */
   async popZSetLog(service, minScore) {
-    const result = await this.redis.zpopmin(`zsetlogs:${service}`, minScore);
+    const result = await this.redis.bzpopmin(`zsetlogs:${service}`, 0);
+
+		if (!result) return [];
+
+		const [key, firstMember, firstScore] = result;
+
+		const morelogs = await this.redis.zpopmin(`zsetlogs:${service}`, minScore - 1);
+
     const currLen = await this.redis.zcard(`zsetlogs:${service}`);
     if (currLen <= this.zsetLowerLimit) {
       const currZsetStatus = await this.redis.get(`zsetStatus:${service}`);
@@ -86,7 +100,7 @@ class RedisHandler {
         this.backPressureController.emitQueueResume(service);
       }
     }
-    return result;
+    return [firstMember, firstScore, ...morelogs];
   }
 
   /**
