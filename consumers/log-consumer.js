@@ -48,6 +48,22 @@ class LogConsumer {
       durable: true,
     });
 
+    await this.mainChannel.assertExchange("logs.retry.exchange", "topic", { durable: true });
+
+		this.dlqChannel = await this.mainChannel.assertQueue("log-dlq", { durable: true });
+		this.retryQueue = await this.mainChannel.assertQueue("log-retry", {
+			durable: true,
+			deadLetterExchange: "logs.topic",
+			messageTtl: 5000,
+		});
+
+		await this.mainChannel.bindQueue(
+			this.retryQueue.queue,
+			"logs.topic",
+			"logs.retry.exchange",
+			"#",
+		);
+
     await this.#setupServiceChannels();
     this.#consumeLogs();
 
@@ -124,6 +140,7 @@ class LogConsumer {
       if (msg !== null) {
         const headers = msg.properties.headers;
         const logString = msg.content.toString();
+        const retryCount = msg.properties.headers["retry-count"] || 0;
 
         const service = headers["service-name"];
 
@@ -137,7 +154,23 @@ class LogConsumer {
           channel.ack(msg);
         } catch (error) {
           console.error("Error processing log message:", error);
-          channel.nack(msg, false, true);
+          if (retryCount < 3) {
+						msg.properties.headers["retry-count"] = retryCount + 1;
+
+						const originalRoutingKey = msg.fields.routingKey;
+
+						this.mainChannel.publish(
+							"logs.retry.exchange",
+							originalRoutingKey,
+							msg.content,
+							msg.properties,
+						);
+
+						channel.ack(msg);
+					} else {
+						channel.sendToQueue(this.dlqChannel.queue, msg.content, msg.properties);
+						channel.ack(msg);
+					}
         }
       }
     });
