@@ -138,7 +138,7 @@ class LogConsumer {
   async #createConsumer(channel, queueName) {
     const consumerTag = await channel.consume(queueName, async (msg) => {
       if (msg !== null) {
-        const headers = msg.properties.headers;
+        const headers = msg.properties.headers || {};
         const logString = msg.content.toString();
         const retryCount = msg.properties.headers["retry-count"] || 0;
 
