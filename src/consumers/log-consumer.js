@@ -176,7 +176,15 @@ class LogConsumer {
 
 						channel.ack(msg);
 					} else {
-						channel.sendToQueue(this.dlqChannel.queue, msg.content, msg.properties);
+            channel.sendToQueue(this.dlqChannel.queue, msg.content, {
+							headers: {
+								...msg.properties.headers,
+								"error-reason": error.message,
+								"is-unrecoverable": isUnrecoverable,
+								"retry-count": retryCount,
+								"service-name": service ?? "unknown",
+							},
+						});
 						channel.ack(msg);
 					}
         }
