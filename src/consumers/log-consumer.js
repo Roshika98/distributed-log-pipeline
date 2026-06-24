@@ -144,6 +144,13 @@ class LogConsumer {
         const service = headers["service-name"];
 
         try {
+          const parsedLog = JSON.parse(logString);
+          if (!parsedLog.timestamp || !parsedLog.service || !parsedLog.level) {
+            const err = new Error("Missing required log fields (timestamp, service, level)");
+            err.isUnrecoverable = true;
+            throw err;
+          }
+
           await this.redishandler.insertZSetByService(
             service,
             Date.now(),
@@ -153,7 +160,9 @@ class LogConsumer {
           channel.ack(msg);
         } catch (error) {
           console.error("Error processing log message:", error);
-          if (retryCount < 3) {
+          const isUnrecoverable = error instanceof SyntaxError || error.isUnrecoverable;
+
+          if (!isUnrecoverable && retryCount < 3) {
 						msg.properties.headers["retry-count"] = retryCount + 1;
 
 						const originalRoutingKey = msg.fields.routingKey;
