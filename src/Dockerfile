@@ -24,8 +24,4 @@ COPY . .
 EXPOSE 6321
 CMD [ "node", "index.js" ]
 
-# docker build -t kbdevframe .
-# docker run -p 5300:5300 --name kb-devframe -d kbdevframe
-# docker run -p 5300:5300 --net=host --name kb-devframe -d kbdevframe
-
 

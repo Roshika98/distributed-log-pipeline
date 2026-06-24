@@ -18,3 +18,5 @@ class GenAIConnector {
 		});
 	}
 }
+
+module.exports = GenAIConnector;
