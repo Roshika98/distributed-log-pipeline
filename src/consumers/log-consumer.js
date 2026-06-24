@@ -59,9 +59,8 @@ class LogConsumer {
 
 		await this.mainChannel.bindQueue(
 			this.retryQueue.queue,
-			"logs.topic",
 			"logs.retry.exchange",
-			"#",
+			"#"
 		);
 
     await this.#setupServiceChannels();
