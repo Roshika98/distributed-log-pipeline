@@ -18,8 +18,14 @@ const QUEUE = {
 };
 
 class QueueManager {
+	/**
+	 * @type {QueueManager}
+	 */
 	static instance = null;
 
+	/**
+	 * @returns {QueueManager}
+	 */
 	static getInstance() {
 		if (!QueueManager.instance) {
 			const rabbitmqUrl = process.env.RABBITMQ_URL || "amqp://localhost";
@@ -80,6 +86,15 @@ class QueueManager {
 			default:
 				throw new Error("Invalid queue type");
 		}
+	}
+
+	/**
+	 * Create a channel
+	 * @returns {Promise<amqplib.Channel>}
+	 */
+	async createChannel() {
+		const channel = await this.connection.createChannel();
+		return channel;
 	}
 }
 

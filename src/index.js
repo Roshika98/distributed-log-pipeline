@@ -3,6 +3,7 @@ const LogConsumer = require("./consumers/log-consumer");
 const RedisDrainer = require("./consumers/redis-drainer");
 const RedisHandler = require("./utility/redis-handler");
 const DbWorker = require("./consumers/db-worker");
+const { QueueManager } = require("./managers/queue-manger");
 const servicesList = require("./service_list.json");
 const express = require("express");
 const amqp = require("amqplib");
@@ -40,18 +41,20 @@ async function waitForRabbitMQ(retries = 10, interval = 5000) {
 }
 
 async function start() {
-  const redisHandler = RedisHandler.getInstance();
-  const consumer = LogConsumer.getInstance();
-  const dbWorker = DbWorker.getInstance();
-  dbWorker.processLogs();
-  await consumer.intialize();
-  setTimeout(() => {
-    const services = servicesList.services;
-    services.forEach((service) => {
-      const drainer = new RedisDrainer(service.queue);
-      drainer.initialize();
-    });
-  }, 1000);
+	const redisHandler = RedisHandler.getInstance();
+	const queueManager = QueueManager.getInstance();
+	await queueManager.initialize();
+	// const consumer = LogConsumer.getInstance();
+	const dbWorker = DbWorker.getInstance();
+	dbWorker.processLogs();
+	await consumer.intialize();
+	setTimeout(() => {
+		const services = servicesList.services;
+		services.forEach((service) => {
+			const drainer = new RedisDrainer(service.queue);
+			drainer.initialize();
+		});
+	}, 1000);
 }
 
 async function startServer() {
